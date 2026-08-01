@@ -14,7 +14,8 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "coverage:patch": "node scripts/patch-coverage.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

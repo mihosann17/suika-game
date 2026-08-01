@@ -21,7 +21,7 @@ export default tseslint.config(
   },
   {
     // Node で動く設定ファイル: Node グローバルを許可し console を解禁
-    files: ["**/*.config.{ts,js}"],
+    files: ["**/*.config.{ts,js}", "scripts/**"],
     languageOptions: {
       globals: {
         process: "readonly",

@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # パッチカバレッジの差分計算に全履歴が必要
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -29,5 +31,10 @@ jobs:
         run: npm run format:check
       - name: Unit tests + coverage
         run: npm run coverage
+      - name: Patch coverage (変更行は100%被覆)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+          npm run coverage:patch -- --base origin/${{ github.event.pull_request.base.ref }}
       - name: Build
         run: npm run build
