@@ -18,7 +18,8 @@ export interface FruitKind {
 }
 
 // さくらんぼ → いちご → ぶどう → デコポン → 柿 → りんご → 梨 → 桃 → パイナップル → メロン → スイカ
-// 以下は純粋なデータ表（見た目・寸法）。
+// 以下は純粋なデータ表（見た目・寸法）。ロジックではないためミューテーション対象から除外する。
+// Stryker disable all
 const RAW: ReadonlyArray<Omit<FruitKind, "level" | "score">> = [
   { name: "さくらんぼ", emoji: "🍒", radius: 15, color: "#e64a4a" },
   { name: "いちご", emoji: "🍓", radius: 21, color: "#f2688a" },
@@ -32,6 +33,7 @@ const RAW: ReadonlyArray<Omit<FruitKind, "level" | "score">> = [
   { name: "メロン", emoji: "🍈", radius: 90, color: "#a7cf6b" },
   { name: "スイカ", emoji: "🍉", radius: 104, color: "#4caf50" },
 ];
+// Stryker restore all
 
 /** 三角数: 合体で段階 n(0-index) を作ったときのスコア (1,3,6,10,...)。 */
 function triangular(n: number): number {
