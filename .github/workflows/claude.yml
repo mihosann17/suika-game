@@ -1,0 +1,40 @@
+name: Claude
+
+# Issue / PR のコメントや本文に @claude を含めると起動する（イベント駆動）
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  issues:
+    types: [opened, assigned]
+
+# @claude を含むイベントだけに絞り、無駄な実行を避ける
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # ブランチへの push（修正の反映）に必要
+      pull-requests: write # PR へのコメント・作成に必要
+      issues: write # Issue へのコメントに必要
+      id-token: write
+      actions: read # CI 結果の参照に必要
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # プロジェクト固有のツール許可などは claude_args で渡せる
+          claude_args: |
+            --allowed-tools "Bash(npm ci),Bash(npm run typecheck),Bash(npm run lint),Bash(npm run test),Bash(npm run coverage)"
