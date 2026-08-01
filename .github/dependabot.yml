@@ -17,6 +17,7 @@ updates:
           - "@stryker-mutator/*"
       vitest:
         patterns:
+          - "vite"
           - "vitest"
           - "@vitest/*"
       # 上記以外の開発ツールのマイナー/パッチ更新はまとめて1つのPRに
