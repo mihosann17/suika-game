@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>スイカゲーム</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="hud">
+        <div class="score-box">
+          <span class="label">SCORE</span>
+          <span id="score" class="score">0</span>
+        </div>
+        <div class="best-box">
+          <span class="label">BEST</span>
+          <span id="best" class="best">0</span>
+        </div>
+      </header>
+
+      <div id="board" class="board">
+        <div id="next-preview" class="next-preview">
+          <span class="label">NEXT</span>
+          <span id="next-fruit" class="next-fruit"></span>
+        </div>
+        <canvas id="game-canvas"></canvas>
+        <div id="gameover" class="gameover hidden">
+          <div class="gameover-inner">
+            <h2>GAME OVER</h2>
+            <p class="final-score">SCORE: <span id="final-score">0</span></p>
+            <button id="restart" class="btn">もう一度</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="hint">クリック / タップした位置にフルーツを落とす</p>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

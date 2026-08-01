@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+
+# テスト・カバレッジ・レポートの生成物
+coverage
+playwright-report
+test-results
+reports
+.stryker-tmp
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.log

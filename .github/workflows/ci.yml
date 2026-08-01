@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# 同じブランチの古い実行はキャンセル
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # パッチカバレッジの差分計算に全履歴が必要
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Format check
+        run: npm run format:check
+      - name: Unit tests + coverage
+        run: npm run coverage
+      - name: Patch coverage (変更行は100%被覆)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+          npm run coverage:patch -- --base origin/${{ github.event.pull_request.base.ref }}
+      - name: Build
+        run: npm run build
+
+  mutation:
+    name: mutation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Mutation testing (Stryker)
+        run: npm run mutation
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright browser
+        run: npm run e2e:install
+      - name: Run E2E
+        run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
