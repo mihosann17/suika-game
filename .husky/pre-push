@@ -1,0 +1,2 @@
+# push 前に型チェックと単体テストを実行（壊れたコードをpushさせない）
+npm run typecheck && npm run test
