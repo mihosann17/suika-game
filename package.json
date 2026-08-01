@@ -1,0 +1,16 @@
+{
+  "name": "suika-game",
+  "version": "0.1.0",
+  "description": "スイカゲーム風の落ち物パズル (Vite + TypeScript)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.7"
+  }
+}
