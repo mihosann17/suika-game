@@ -27,5 +27,7 @@ jobs:
         run: npm run lint
       - name: Format check
         run: npm run format:check
+      - name: Unit tests + coverage
+        run: npm run coverage
       - name: Build
         run: npm run build
