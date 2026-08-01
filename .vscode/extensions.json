@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconfig",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+    "github.vscode-github-actions",
+    "usernamehw.errorlens",
+    "vivaxy.vscode-conventional-commits"
+  ]
+}
