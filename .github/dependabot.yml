@@ -10,7 +10,16 @@ updates:
       prefix: chore
       prefix-development: chore
     groups:
-      # 開発ツールのマイナー更新はまとめて1つのPRに
+      # peer 依存で連動するパッケージは major も含めて常に1つのPRにまとめる。
+      # (別々のPRに分かれると片方だけ上がり npm ci の peer 解決が壊れるため)
+      stryker:
+        patterns:
+          - "@stryker-mutator/*"
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+      # 上記以外の開発ツールのマイナー/パッチ更新はまとめて1つのPRに
       dev-minor:
         dependency-type: development
         update-types:
