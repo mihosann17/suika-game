@@ -7,6 +7,7 @@ import {
   nextLevel,
   canMerge,
   randomDropLevel,
+  parseDropSequence,
 } from "../src/core/fruits";
 
 describe("FRUITS テーブル", () => {
@@ -87,5 +88,30 @@ describe("randomDropLevel", () => {
     const lvl = randomDropLevel();
     expect(lvl).toBeGreaterThanOrEqual(0);
     expect(lvl).toBeLessThanOrEqual(DROP_MAX_LEVEL);
+  });
+});
+
+describe("parseDropSequence", () => {
+  it("null / 空文字列は空配列", () => {
+    expect(parseDropSequence(null)).toEqual([]);
+    expect(parseDropSequence(undefined)).toEqual([]);
+    expect(parseDropSequence("")).toEqual([]);
+  });
+
+  it("カンマ区切りを段階の配列に変換する", () => {
+    expect(parseDropSequence("0,0,3")).toEqual([0, 0, 3]);
+  });
+
+  it("前後の空白を許容する", () => {
+    expect(parseDropSequence(" 1 , 2 ")).toEqual([1, 2]);
+  });
+
+  it("範囲外・非整数・非数値は除外する", () => {
+    expect(parseDropSequence("0,-1,99,1.5,abc,2")).toEqual([0, 2]);
+  });
+
+  it("最大段階（スイカ）まで許容する", () => {
+    expect(parseDropSequence(String(MAX_LEVEL))).toEqual([MAX_LEVEL]);
+    expect(parseDropSequence(String(MAX_LEVEL + 1))).toEqual([]);
   });
 });
