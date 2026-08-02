@@ -83,22 +83,39 @@ export function isAboveDangerLine(
   return fruitCenterY - radius < dangerLineY;
 }
 
+/**
+ * フルーツが「静止した（盤上に落ち着いた）」状態かどうかを判定する純粋関数。
+ *
+ * ドメイン上、フルーツには「落下・跳ね返りで動いている最中」と「積もって落ち着いた」の
+ * 2つの局面がある。この違いはフルーツ自身の振る舞い（動いているか否か）であり、
+ * その判断材料が速度である。ゲームオーバー判定では「落ち着いたフルーツ」だけを
+ * 対象にしたいので、この述語で局面を区別する。
+ * @param speed フルーツの速度の大きさ
+ * @param speedThreshold これ以下なら静止とみなす閾値
+ */
+export function isSettled(speed: number, speedThreshold: number): boolean {
+  return speed <= speedThreshold;
+}
+
 /** ゲームオーバー判定に使う、フルーツ1個分の最小情報。 */
 export interface OverflowFruit {
   /** 中心 y */
   centerY: number;
   /** 半径 */
   radius: number;
-  /** 速度の大きさ。落下中の一時的な越境を除外するために使う。 */
+  /** 速度の大きさ。静止（落ち着いた）かどうかの判断に使う。 */
   speed: number;
 }
 
 /**
- * いずれかのフルーツが「静止した状態で危険ラインを越えている」かを判定する純粋関数。
- * 落下・跳ね返り中（speed が大きい）フルーツは一時的に越境していても除外する。
+ * 盤面が「危険ラインを越えてあふれている」かを判定する純粋関数。
+ *
+ * ゲームオーバー条件は「積もって落ち着いたフルーツが危険ラインを越えている」こと。
+ * 投下直後に危険ライン付近を高速で通過するフルーツは、まだ落ち着いていない
+ * （= isSettled でない）ため対象外とし、一時的な越境で終了しないようにする。
  * @param fruits 判定対象のフルーツ群
  * @param dangerLineY 危険ラインの y
- * @param speedThreshold これ以下の速度なら「静止」とみなす閾値
+ * @param speedThreshold 静止とみなす速度の閾値（isSettled に渡す）
  */
 export function isOverflowing(
   fruits: readonly OverflowFruit[],
@@ -106,6 +123,7 @@ export function isOverflowing(
   speedThreshold: number,
 ): boolean {
   return fruits.some(
-    (f) => f.speed <= speedThreshold && isAboveDangerLine(f.centerY, f.radius, dangerLineY),
+    (f) =>
+      isSettled(f.speed, speedThreshold) && isAboveDangerLine(f.centerY, f.radius, dangerLineY),
   );
 }
