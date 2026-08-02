@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "スイカゲーム風の落ち物パズル (Vite + TypeScript)",
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10.8.0 <11.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
