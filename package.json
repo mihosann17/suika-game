@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.1",
+    "@types/matter-js": "^0.20.2",
     "@commitlint/config-conventional": "^21.2.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.49.1",
@@ -52,5 +53,8 @@
     "*.{json,css,html,md,yml,yaml}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "matter-js": "^0.20.0"
   }
 }
