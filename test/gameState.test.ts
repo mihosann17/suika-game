@@ -83,6 +83,24 @@ describe("GameState", () => {
     g.reset();
     expect(g.best).toBe(high);
   });
+
+  it("初期ベストを指定して生成でき、best に反映される", () => {
+    const g = new GameState(1234);
+    expect(g.best).toBe(1234);
+    expect(g.score).toBe(0);
+  });
+
+  it("初期ベストの負値・小数は 0 以上の整数に丸める", () => {
+    expect(new GameState(-5).best).toBe(0);
+    expect(new GameState(99.9).best).toBe(99);
+  });
+
+  it("復元した初期ベストを下回るスコアで終了してもベストは保持される", () => {
+    const g = new GameState(1000);
+    g.resolveMerge(0, 0); // 復元ベストより低いスコア
+    g.end();
+    expect(g.best).toBe(1000);
+  });
 });
 
 describe("isAboveDangerLine（フルーツの上端が危険ラインを越えているか）", () => {

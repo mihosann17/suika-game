@@ -4,6 +4,7 @@ import { getFruit, parseDropSequence, randomDropLevel } from "./core/fruits";
 import { GameState, isOverflowing } from "./core/gameState";
 import { addFruit, clearFruits, createPhysics, fruitBodies, step } from "./game/physics";
 import { setupMerge } from "./game/merge";
+import { loadBest, saveBest } from "./game/bestStore";
 import { render } from "./game/render";
 
 const WIDTH = BOARD_WIDTH;
@@ -37,7 +38,8 @@ const finalScoreEl = document.querySelector<HTMLElement>("#final-score");
 const restartEl = document.querySelector<HTMLButtonElement>("#restart");
 
 const { engine, world } = createPhysics(WIDTH, HEIGHT);
-const state = new GameState();
+// 前回までのベストスコアを復元して開始する（リロードしても引き継ぐ）。
+const state = new GameState(loadBest());
 
 // 決定的な投下順（デバッグ/E2E 用）。?seq=0,0 のように指定すると循環して使う。
 const forcedSequence = parseDropSequence(new URLSearchParams(window.location.search).get("seq"));
@@ -107,6 +109,7 @@ function drop(now: number): void {
 /** ゲームオーバーにして結果オーバーレイを表示する。 */
 function triggerGameOver(): void {
   state.end();
+  saveBest(state.best);
   overflowSince = null;
   updateScore();
   if (finalScoreEl) {
@@ -137,6 +140,7 @@ function checkGameOver(now: number): void {
 function restart(): void {
   clearFruits(world);
   state.reset();
+  saveBest(state.best);
   overflowSince = null;
   readyAt = 0;
   forcedCursor = 0;
