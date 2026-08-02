@@ -10,12 +10,28 @@ updates:
       prefix: chore
       prefix-development: chore
     groups:
-      # 開発ツールのマイナー更新はまとめて1つのPRに
+      # peer 依存で連動するパッケージは major も含めて常に1つのPRにまとめる。
+      # (別々のPRに分かれると片方だけ上がり npm ci の peer 解決が壊れるため)
+      stryker:
+        patterns:
+          - "@stryker-mutator/*"
+      vitest:
+        patterns:
+          - "vite"
+          - "vitest"
+          - "@vitest/*"
+      # 上記以外の開発ツールのマイナー/パッチ更新はまとめて1つのPRに
       dev-minor:
         dependency-type: development
         update-types:
           - minor
           - patch
+    ignore:
+      # TypeScript 7.x はネイティブ書き直し (tsgo) で内部 API が別物になり、
+      # typescript-eslint が stable/alpha ともに未対応 (peer: typescript <6.1.0)。
+      # 対応版がリリースされ次第この ignore を外す。それまで 6.0 系までを許可。
+      - dependency-name: "typescript"
+        versions: [">=7"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
