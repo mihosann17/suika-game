@@ -81,3 +81,19 @@ export function canMerge(a: number, b: number): boolean {
 export function randomDropLevel(rng: () => number = Math.random): number {
   return Math.floor(rng() * (DROP_MAX_LEVEL + 1));
 }
+
+/**
+ * 投下順を固定するためのシーケンス文字列（例 "0,0,3"）を段階の配列に変換する。
+ * デバッグ/E2E で決定的な投下を行うための seam。無効値は無視する。
+ * @param seq カンマ区切りの段階。null/空なら空配列。
+ * @returns 0..MAX_LEVEL の整数のみを残した配列
+ */
+export function parseDropSequence(seq: string | null | undefined): number[] {
+  if (!seq) {
+    return [];
+  }
+  return seq
+    .split(",")
+    .map((s) => Number(s.trim()))
+    .filter((n) => Number.isInteger(n) && n >= 0 && n <= MAX_LEVEL);
+}
