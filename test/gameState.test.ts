@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { GameState, isAboveDangerLine } from "../src/core/gameState";
+import { GameState, isAboveDangerLine, isOverflowing } from "../src/core/gameState";
 import { FRUITS, MAX_LEVEL } from "../src/core/fruits";
 
 describe("GameState", () => {
@@ -99,5 +99,47 @@ describe("isAboveDangerLine", () => {
   it("ちょうど接している境界は false（未満で判定）", () => {
     // 上端 70、ライン 70
     expect(isAboveDangerLine(100, 30, 70)).toBe(false);
+  });
+});
+
+describe("isOverflowing", () => {
+  const LINE = 80;
+  const THRESHOLD = 0.8;
+
+  it("空配列は false", () => {
+    expect(isOverflowing([], LINE, THRESHOLD)).toBe(false);
+  });
+
+  it("静止して越えているフルーツがあれば true", () => {
+    // 上端 70 (< 80)、速度 0.1 (<= 0.8)
+    expect(isOverflowing([{ centerY: 100, radius: 30, speed: 0.1 }], LINE, THRESHOLD)).toBe(true);
+  });
+
+  it("越えていても高速（落下中）なら除外して false", () => {
+    expect(isOverflowing([{ centerY: 100, radius: 30, speed: 5 }], LINE, THRESHOLD)).toBe(false);
+  });
+
+  it("静止していてもライン下なら false", () => {
+    // 上端 90 (>= 80)
+    expect(isOverflowing([{ centerY: 120, radius: 30, speed: 0 }], LINE, THRESHOLD)).toBe(false);
+  });
+
+  it("速度が閾値ちょうどは静止扱い（以下で判定）", () => {
+    expect(isOverflowing([{ centerY: 100, radius: 30, speed: THRESHOLD }], LINE, THRESHOLD)).toBe(
+      true,
+    );
+  });
+
+  it("複数のうち1つでも該当すれば true", () => {
+    expect(
+      isOverflowing(
+        [
+          { centerY: 300, radius: 20, speed: 0 }, // ライン下
+          { centerY: 90, radius: 30, speed: 0.2 }, // 越え・静止
+        ],
+        LINE,
+        THRESHOLD,
+      ),
+    ).toBe(true);
   });
 });

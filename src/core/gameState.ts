@@ -82,3 +82,30 @@ export function isAboveDangerLine(
 ): boolean {
   return fruitCenterY - radius < dangerLineY;
 }
+
+/** ゲームオーバー判定に使う、フルーツ1個分の最小情報。 */
+export interface OverflowFruit {
+  /** 中心 y */
+  centerY: number;
+  /** 半径 */
+  radius: number;
+  /** 速度の大きさ。落下中の一時的な越境を除外するために使う。 */
+  speed: number;
+}
+
+/**
+ * いずれかのフルーツが「静止した状態で危険ラインを越えている」かを判定する純粋関数。
+ * 落下・跳ね返り中（speed が大きい）フルーツは一時的に越境していても除外する。
+ * @param fruits 判定対象のフルーツ群
+ * @param dangerLineY 危険ラインの y
+ * @param speedThreshold これ以下の速度なら「静止」とみなす閾値
+ */
+export function isOverflowing(
+  fruits: readonly OverflowFruit[],
+  dangerLineY: number,
+  speedThreshold: number,
+): boolean {
+  return fruits.some(
+    (f) => f.speed <= speedThreshold && isAboveDangerLine(f.centerY, f.radius, dangerLineY),
+  );
+}

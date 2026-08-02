@@ -1,8 +1,8 @@
 import "./style.css";
-import { BOARD_HEIGHT, BOARD_WIDTH, DROP_Y, clampDropX } from "./core/board";
+import { BOARD_HEIGHT, BOARD_WIDTH, DANGER_LINE_Y, DROP_Y, clampDropX } from "./core/board";
 import { getFruit, parseDropSequence, randomDropLevel } from "./core/fruits";
-import { GameState } from "./core/gameState";
-import { addFruit, createPhysics, fruitBodies, step } from "./game/physics";
+import { GameState, isOverflowing } from "./core/gameState";
+import { addFruit, clearFruits, createPhysics, fruitBodies, step } from "./game/physics";
 import { setupMerge } from "./game/merge";
 import { render } from "./game/render";
 
@@ -12,6 +12,10 @@ const HEIGHT = BOARD_HEIGHT;
 const DROP_COOLDOWN_MS = 500;
 /** 物理ステップの最大 delta (ms)。タブ復帰時などの飛びを抑える。 */
 const MAX_STEP_MS = 1000 / 30;
+/** 「静止」とみなす速度の閾値（これ以下ならゲームオーバー判定の対象）。 */
+const SETTLE_SPEED = 0.8;
+/** 危険ライン越えが継続してからゲームオーバーになるまでの猶予 (ms)。 */
+const GAMEOVER_GRACE_MS = 1200;
 
 const canvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
 if (!canvas) {
@@ -28,6 +32,9 @@ if (!ctx) {
 const nextFruitEl = document.querySelector<HTMLElement>("#next-fruit");
 const scoreEl = document.querySelector<HTMLElement>("#score");
 const bestEl = document.querySelector<HTMLElement>("#best");
+const gameoverEl = document.querySelector<HTMLElement>("#gameover");
+const finalScoreEl = document.querySelector<HTMLElement>("#final-score");
+const restartEl = document.querySelector<HTMLButtonElement>("#restart");
 
 const { engine, world } = createPhysics(WIDTH, HEIGHT);
 const state = new GameState();
@@ -49,6 +56,8 @@ let nextLevel = nextDropLevel();
 let pointerX = WIDTH / 2;
 // クールダウン解除時刻（performance.now 基準）。0 なら投下可。
 let readyAt = 0;
+// 危険ライン越えを最初に検知した時刻。越えていなければ null。
+let overflowSince: number | null = null;
 
 function updateNextPreview(): void {
   if (nextFruitEl) {
@@ -61,7 +70,7 @@ function updateScore(): void {
     scoreEl.textContent = String(state.score);
   }
   if (bestEl) {
-    // ゲームオーバー未実装のため、表示上は現在スコアもベスト候補に含める。
+    // ベストは end()/reset() で確定するため、プレイ中も現在スコアを候補に含めて即時表示する。
     bestEl.textContent = String(Math.max(state.best, state.score));
   }
 }
@@ -84,7 +93,7 @@ function canDrop(now: number): boolean {
 }
 
 function drop(now: number): void {
-  if (!canDrop(now)) {
+  if (state.isOver || !canDrop(now)) {
     return;
   }
   const x = clampDropX(pointerX, pendingRadius());
@@ -93,6 +102,51 @@ function drop(now: number): void {
   nextLevel = nextDropLevel();
   updateNextPreview();
   readyAt = now + DROP_COOLDOWN_MS;
+}
+
+/** ゲームオーバーにして結果オーバーレイを表示する。 */
+function triggerGameOver(): void {
+  state.end();
+  overflowSince = null;
+  updateScore();
+  if (finalScoreEl) {
+    finalScoreEl.textContent = String(state.score);
+  }
+  gameoverEl?.classList.remove("hidden");
+}
+
+/** 静止フルーツの危険ライン越えが猶予時間を超えたらゲームオーバーにする。 */
+function checkGameOver(now: number): void {
+  const fruits = fruitBodies(world).map((b) => ({
+    centerY: b.position.y,
+    radius: getFruit(b.plugin.level).radius,
+    speed: b.speed,
+  }));
+  if (isOverflowing(fruits, DANGER_LINE_Y, SETTLE_SPEED)) {
+    if (overflowSince === null) {
+      overflowSince = now;
+    } else if (now - overflowSince >= GAMEOVER_GRACE_MS) {
+      triggerGameOver();
+    }
+  } else {
+    overflowSince = null;
+  }
+}
+
+/** 盤面を初期化して再開する。ベストスコアは保持される。 */
+function restart(): void {
+  clearFruits(world);
+  state.reset();
+  overflowSince = null;
+  readyAt = 0;
+  forcedCursor = 0;
+  currentLevel = nextDropLevel();
+  nextLevel = nextDropLevel();
+  pointerX = WIDTH / 2;
+  updateNextPreview();
+  updateScore();
+  gameoverEl?.classList.add("hidden");
+  lastTime = performance.now();
 }
 
 canvas.addEventListener("pointermove", (e) => {
@@ -104,16 +158,22 @@ canvas.addEventListener("pointerdown", (e) => {
   drop(performance.now());
 });
 
+restartEl?.addEventListener("click", restart);
+
 updateNextPreview();
 updateScore();
 
 let lastTime = performance.now();
 function frame(now: number): void {
-  const delta = Math.min(now - lastTime, MAX_STEP_MS);
+  if (!state.isOver) {
+    const delta = Math.min(now - lastTime, MAX_STEP_MS);
+    step(engine, delta);
+    checkGameOver(now);
+  }
   lastTime = now;
-  step(engine, delta);
 
-  const ready = canDrop(now);
+  // ゲームオーバー中は積まれたフルーツを凍結表示し、投下ガイドは隠す。
+  const ready = !state.isOver && canDrop(now);
   const clampedX = clampDropX(pointerX, pendingRadius());
   render(
     ctx!,
