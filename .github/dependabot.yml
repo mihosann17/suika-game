@@ -26,6 +26,12 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # TypeScript 7.x はネイティブ書き直し (tsgo) で内部 API が別物になり、
+      # typescript-eslint が stable/alpha ともに未対応 (peer: typescript <6.1.0)。
+      # 対応版がリリースされ次第この ignore を外す。それまで 6.0 系までを許可。
+      - dependency-name: "typescript"
+        versions: [">=7"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
