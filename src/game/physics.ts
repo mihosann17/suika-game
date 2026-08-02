@@ -79,6 +79,13 @@ export function fruitBodies(world: World): FruitBody[] {
   return Composite.allBodies(world).filter(isFruitBody);
 }
 
+/** 世界からフルーツ剛体をすべて取り除く（壁・床は残す）。リスタート用。 */
+export function clearFruits(world: World): void {
+  for (const body of fruitBodies(world)) {
+    Composite.remove(world, body);
+  }
+}
+
 /** 物理を 1 ステップ進める。delta はミリ秒。 */
 export function step(engine: Engine, deltaMs: number): void {
   Engine.update(engine, deltaMs);
