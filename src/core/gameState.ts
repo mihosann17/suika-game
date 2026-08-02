@@ -15,8 +15,16 @@ export interface MergeOutcome {
 
 export class GameState {
   private _score = 0;
-  private _best = 0;
+  private _best: number;
   private _over = false;
+
+  /**
+   * @param initialBest 復元するベストスコア（永続化した値の再読み込み用）。
+   *   負値・小数は 0 以上の整数に丸める。
+   */
+  constructor(initialBest = 0) {
+    this._best = Math.max(0, Math.floor(initialBest));
+  }
 
   get score(): number {
     return this._score;
